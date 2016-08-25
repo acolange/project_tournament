@@ -15,12 +15,6 @@ Once the box has loaded and begun running you can connect to the box via `vagran
 
 The files for the project can be found by using  `cd /vagrant/tournament`.
 
-THe database will need to be created from the PostresGQL interface access via the `psql` command.
-
-At the prompt run the 2 following commands to setup the DB for the project.
-
-`CREATE DATABASE tournament` and then `\c tournament`
-
-To create the tables for the DATABASE you can run `\i tournament.sql`
+THe database will need to be created from the PostresGQL interface access via the `psql -f tournament.sql` command.
 
 To run the tests you can then call `python tournament_test.py` to run the test files.
