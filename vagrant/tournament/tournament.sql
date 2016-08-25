@@ -5,16 +5,34 @@
 --
 -- You can write comments in this file by starting them with two dashes, like
 -- these lines here.
+DROP DATABASE IF EXISTS tournament;
+CREATE DATABASE tournament;
+\c tournament;
 
-create table players (
+CREATE TABLE players (
   name text NOT NULL,
-  wins integer,
-  matches integer,
   id serial PRIMARY KEY
 );
 
-create table matches (
+CREATE TABLE matches (
   winner integer REFERENCES players(id),
   loser integer REFERENCES players(id),
   id serial PRIMARY KEY
-)
+);
+
+CREATE VIEW matchwins AS
+  SELECT players.id,
+         players.name,
+         COUNT(matches.winner) AS wins
+  FROM   players
+         LEFT JOIN matches
+                ON players.id=matches.winner
+  GROUP BY players.id;
+
+CREATE VIEW matchlosses AS
+  SELECT players.id,
+         COUNT(matches.loser) AS losses
+  FROM   players
+         LEFT JOIN matches
+                ON players.id=matches.loser
+  GROUP BY players.id;

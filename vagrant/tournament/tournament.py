@@ -16,7 +16,6 @@ def deleteMatches():
     db = connect()
     cursor = db.cursor()
     cursor.execute("DELETE FROM matches;")
-    cursor.execute("UPDATE players SET matches = 0, wins = 0;")
     db.commit()
     db.close()
 
@@ -51,9 +50,9 @@ def registerPlayer(name):
     """
     db = connect()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO players (name, wins, matches)"
-                   "VALUES (%s, %s, %s);",
-                   (name, 0, 0))
+    cursor.execute("INSERT INTO players (name)"
+                   "VALUES (%s);",
+                   (name,))
     db.commit()
     db.close()
     # print name
@@ -74,9 +73,14 @@ def playerStandings():
     """
     db = connect()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM players ORDER BY wins DESC;")
-    standings = [(c[3], c[0], c[1], c[2]) for c in cursor]
+    cursor.execute("""SELECT matchwins.id, matchwins.name,
+                   matchwins.wins, matchlosses.losses+matchwins.wins
+                   FROM matchwins,matchlosses
+                   WHERE matchwins.id=matchlosses.id
+                   ORDER BY wins DESC;""")
+    standings = cursor.fetchall()
     db.close()
+    # print standings
     return standings
 
 
@@ -93,12 +97,6 @@ def reportMatch(winner, loser):
     # Create match
     cursor.execute("INSERT INTO matches (winner, loser)"
                    "VALUES (%s, %s)", (winner, loser))
-    # Update winner
-    cursor.execute("UPDATE players SET matches = matches+1, wins = wins+1 "
-                   "WHERE id = %s;", (winner,))
-    # Update loser
-    cursor.execute("UPDATE players SET matches = matches+1 WHERE id = %s;",
-                   (loser,))
     db.commit()
     db.close()
 
@@ -121,8 +119,7 @@ def swissPairings():
     db = connect()
     cursor = db.cursor()
     # Return players in standing order
-    cursor.execute("SELECT id, name FROM players ORDER BY wins DESC")
-    players = cursor.fetchall()
+    players = playerStandings()
     pairs = []
     for i in range(0, len(players), 2):
         pairs.append((players[i][0], players[i][1],
